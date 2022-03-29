@@ -1,0 +1,14 @@
+name: "evaporative-cooling-website"
+navbar:
+  title: "evaporative cooling website"
+  left:
+    - text: "Home"
+      href: index.html
+  right: 
+    - icon: fa-envelope fa-lg
+      href: mailto:<cats@catemail.com>
+    - icon: fa-github fa-lg
+      href: http://github.com/kanaha150/
+output:
+  html_document:
+    theme: darkly
