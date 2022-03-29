@@ -8,7 +8,7 @@ navbar:
     - icon: fa-envelope fa-lg
       href: mailto:<cats@catemail.com>
     - icon: fa-github fa-lg
-      href: http://github.com/kanaha150/
+      href: https://kanaha150.github.io/evapoCooingMap_01/
 output:
   html_document:
     theme: darkly
