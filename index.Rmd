@@ -1,5 +1,248 @@
 ---
-title: "My Website"
+title: "Evapo Cooling map"
 ---
 
-Hello, Website!
+The maximal temperature depression due to evaporative cooling for 4 seasons
+```{r, echo=FALSE, message=FALSE, results='hide',warning=FALSE}
+library(rgdal)
+library(rgeos)
+library(hrbrthemes)
+library(ggplot2)
+library(extrafont) 
+library(dplyr)
+library(viridisLite)
+
+setwd("K:/Sims-shoji/2021_Charcoal/boundary/world")
+world <- readOGR(dsn = "world_countries_2", layer = "ne_10m_admin_0_countries")
+world_f<-fortify(world,region = "sovereignt" )
+```
+
+
+```{r,  echo=FALSE, message=FALSE, results='hide',warning=FALSE}
+setwd("K:/Sims-shoji/2021_Charcoal")
+data2show<-read.csv("wetbulb_world_2020_webmap_01.csv")
+data2show$month = factor(data2show$month, levels=month.abb)
+# concert to data.frame to tbl_df
+data2show<-as_tibble(data2show)
+
+
+
+theme_map <- function(...) {
+  theme_minimal() +
+  theme(
+    text = element_text( color = "#22211d"),
+    axis.line = element_blank(),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    # panel.grid.minor = element_line(color = "#ebebe5", size = 0.2),
+    panel.grid.major = element_line(color = "#ebebe5", size = 0.2),
+    panel.grid.minor = element_blank(),
+    plot.background = element_rect(fill = "#f5f5f2", color = NA), 
+    panel.background = element_rect(fill = "#f5f5f2", color = NA), 
+    legend.background = element_rect(fill = "#f5f5f2", color = NA),
+    panel.border = element_blank(),
+    plot.margin = margin(0, 0, 0, 0, "cm"),
+    ...
+  )
+}
+
+noZero<-data2show$cool_t
+noZero[noZero==0]<-NA
+pretty_breaks <- unname(quantile(noZero, probs = c(1/5,2/5,3/5,4/5), na.rm=TRUE))
+pretty_breaks<-round(pretty_breaks,0)
+pretty_breaks<-c(0, pretty_breaks)
+
+
+# find the extremes
+minVal <- min(data2show$cool_t, na.rm = T)
+maxVal <- max(data2show$cool_t, na.rm = T)
+# compute labels
+labels <- c()
+brks <- c(minVal, pretty_breaks, maxVal)
+# round the labels (actually, only the extremes)
+for(idx in 1:length(brks)){
+  labels <- c(labels,round(brks[idx + 1], 2))
+}
+
+labels <- labels[1:length(labels)-1]
+# define a new variable on the data set just as above
+data2show$brks <- cut(data2show$cool_t, 
+                     breaks = brks, 
+                     include.lowest = TRUE, 
+                     labels = labels)
+
+brks_scale <- levels(data2show$brks)
+labels_scale <- rev(brks_scale)
+```
+
+
+```{r out.width='100%', echo=FALSE}
+p <- ggplot() +
+    geom_tile(data =data2show %>% filter(month %in% "Jan"),  
+              aes(x = x, y = y,
+                  fill = brks),
+               width=0.5,height=0.25)+
+  geom_path(data = world_f, aes(x=long,y=lat, group=group))+
+            # ,color = "white", size = 0.01)+
+    coord_sf()+
+    theme_map() +
+    theme(legend.position = "bottom") +
+    labs(x = NULL, 
+         y = NULL, 
+         title = "January 2020")
+
+library(viridis)
+q <- p +
+    scale_fill_manual(
+          values = rev(viridis(6)),
+          breaks = rev(brks_scale),
+          name = "Temperature depression (°C)",
+          drop = FALSE,
+          labels = labels_scale,
+          guide = guide_legend(
+            direction = "horizontal",
+            keyheight = unit(2, units = "mm"),
+            keywidth = unit(70 / length(labels), units = "mm"),
+            title.position = 'top',
+            label.hjust = 1,
+            nrow = 1,
+            byrow = T,
+            reverse = T,
+            label.position = "bottom"
+          )
+      )
+
+q
+```
+```{r out.width='100%', echo=FALSE}
+p <- ggplot() +
+    geom_tile(data =data2show %>% filter(month %in% "Apr"),  
+              aes(x = x, y = y,
+                  fill = brks),
+               width=0.5,height=0.25)+
+  geom_path(data = world_f, aes(x=long,y=lat, group=group))+
+            # ,color = "white", size = 0.01)+
+    coord_sf()+
+    theme_map() +
+    theme(legend.position = "bottom") +
+    labs(x = NULL, 
+         y = NULL, 
+         title = "April 2020")
+
+library(viridis)
+q <- p +
+    scale_fill_manual(
+          values = rev(viridis(6)),
+          breaks = rev(brks_scale),
+          name = "Temperature depression (°C)",
+          drop = FALSE,
+          labels = labels_scale,
+          guide = guide_legend(
+            direction = "horizontal",
+            keyheight = unit(2, units = "mm"),
+            keywidth = unit(70 / length(labels), units = "mm"),
+            title.position = 'top',
+            label.hjust = 1,
+            nrow = 1,
+            byrow = T,
+            reverse = T,
+            label.position = "bottom"
+          )
+      )
+
+q
+```
+
+
+
+```{r out.width='100%', echo=FALSE}
+p <- ggplot() +
+    geom_tile(data =data2show %>% filter(month %in% "Jul"),  
+              aes(x = x, y = y,
+                  fill = brks),
+               width=0.5,height=0.25)+
+  geom_path(data = world_f, aes(x=long,y=lat, group=group))+
+            # ,color = "white", size = 0.01)+
+    coord_sf()+
+    theme_map() +
+    theme(legend.position = "bottom") +
+    labs(x = NULL, 
+         y = NULL, 
+         title = "July 2020")
+
+library(viridis)
+q <- p +
+    scale_fill_manual(
+          values = rev(viridis(6)),
+          breaks = rev(brks_scale),
+          name = "Temperature depression (°C)",
+          drop = FALSE,
+          labels = labels_scale,
+          guide = guide_legend(
+            direction = "horizontal",
+            keyheight = unit(2, units = "mm"),
+            keywidth = unit(70 / length(labels), units = "mm"),
+            title.position = 'top',
+            label.hjust = 1,
+            nrow = 1,
+            byrow = T,
+            reverse = T,
+            label.position = "bottom"
+          )
+      )
+
+q
+```
+
+
+```{r out.width='100%', echo=FALSE}
+p <- ggplot() +
+    geom_tile(data =data2show %>% filter(month %in% "Oct"),  
+              aes(x = x, y = y,
+                  fill = brks),
+               width=0.5,height=0.25)+
+  geom_path(data = world_f, aes(x=long,y=lat, group=group))+
+            # ,color = "white", size = 0.01)+
+    coord_sf()+
+    theme_map() +
+    theme(legend.position = "bottom") +
+    labs(x = NULL, 
+         y = NULL, 
+         title = "October 2020")
+
+library(viridis)
+q <- p +
+    scale_fill_manual(
+          values = rev(viridis(6)),
+          breaks = rev(brks_scale),
+          name = "Temperature depression (°C)",
+          drop = FALSE,
+          labels = labels_scale,
+          guide = guide_legend(
+            direction = "horizontal",
+            keyheight = unit(2, units = "mm"),
+            keywidth = unit(70 / length(labels), units = "mm"),
+            title.position = 'top',
+            label.hjust = 1,
+            nrow = 1,
+            byrow = T,
+            reverse = T,
+            label.position = "bottom"
+          )
+      )
+
+q
+```
+
+```{r out.width='100%', echo=FALSE}
+library(leaflet)
+leaflet() %>% addTiles() %>%
+  setView(-93.65, 42.0285, zoom = 17) %>%
+  addPopups(
+    -93.65, 42.0285,
+    'Here is the <b>Department of Statistics</b>, ISU'
+  )
+```
