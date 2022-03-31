@@ -2,7 +2,7 @@
 title: "Evapo Cooling map"
 ---
 Welcome to the website!
-```{r out.width='100%', echo=FALSE,message=FALSE, results='hide',warning=FALSE}
+```{r out.width='100%', echo=FALSE,message=FALSE, warning=FALSE}
 library(rgdal)
 library(rgeos)
 library(hrbrthemes)
