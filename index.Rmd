@@ -1,9 +1,8 @@
 ---
 title: "Evapo Cooling map"
 ---
-
-The maximal temperature depression due to evaporative cooling for 4 seasons
-```{r, echo=FALSE, message=FALSE, results='hide',warning=FALSE}
+Welcome to the website!
+```{r out.width='100%', echo=FALSE,message=FALSE, results='hide',warning=FALSE}
 library(rgdal)
 library(rgeos)
 library(hrbrthemes)
@@ -12,6 +11,16 @@ library(extrafont)
 library(dplyr)
 library(viridisLite)
 
+library(leaflet)
+leaflet() %>% addTiles() %>%
+  setView(9.3414, 47.41273, zoom = 17) %>%
+  addPopups(
+    9.3414,47.41273, 
+    'Here is the <b>Empa</b>, St. Gallen'
+  )
+```
+The maximal temperature depression due to evaporative cooling for 4 seasons
+```{r, echo=FALSE, message=FALSE, results='hide',warning=FALSE}
 setwd("K:/Sims-shoji/2021_Charcoal/boundary/world")
 world <- readOGR(dsn = "world_countries_2", layer = "ne_10m_admin_0_countries")
 world_f<-fortify(world,region = "sovereignt" )
@@ -237,12 +246,3 @@ q <- p +
 q
 ```
 
-```{r out.width='100%', echo=FALSE}
-library(leaflet)
-leaflet() %>% addTiles() %>%
-  setView(-93.65, 42.0285, zoom = 17) %>%
-  addPopups(
-    -93.65, 42.0285,
-    'Here is the <b>Department of Statistics</b>, ISU'
-  )
-```
