@@ -1,16 +1,16 @@
-name: "my-website"
+name: "charcoal-website"
 output_dir: "."
 navbar:
-  title: "My Website"
+  title: "Evaporatove cooling potential"
   left:
     - text: "Home"
       icon: fa-home
       href: index.html
     - text: "More"
       menu:
-        - text: "About"
+        - text: "Nigeria & India"
           href: about.html
-        - text: "Contact"
+        - text: "World"
           href: contact.html
 output:
   html_document:

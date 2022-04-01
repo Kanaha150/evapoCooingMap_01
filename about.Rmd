@@ -1,8 +1,7 @@
 ---
-title: "About This Website"
+title: "Nigeria and India"
 ---
 
-More about this website.
 
 ```{r, echo=FALSE, message=FALSE, results='hide',warning=FALSE}
 library(rgdal)
@@ -154,12 +153,31 @@ df_coolT_ng_2020_05 <- rasterFromXYZ(coolT_ng_2020_05)  #Convert first two colum
 crs(df_coolT_ng_2020_05) <- sp::CRS("+init=EPSG:4326")
 pal <- colorNumeric("viridis", values(df_coolT_ng_2020_05),na.color = NA)
 leaflet() %>% 
-  addTiles() %>%
-    addScaleBar()%>%
-   addPolygons(data = nga, fillOpacity = 0)%>%
-   addRasterImage( df_coolT_ng_2020_05 , colors = pal, opacity = 0.8) %>%
-  addLegend_decreasing(pal = pal, values = values( df_coolT_ng_2020_05 ),  position = "bottomright", decreasing = TRUE, title = "Temperature</br>depression</br>(°C)</br>May 2020")
+  # Base groups
+  addTiles(group = "OSM (default)") %>%
+  addProviderTiles(providers$Stamen.Terrain, group = "Terrain",providerTileOptions(zIndex= -10000)) %>%
+      addProviderTiles(providers$OpenTopoMap, group = "Topo",providerTileOptions(zIndex= -10)) %>%
+  addProviderTiles(providers$NASAGIBS.ViirsEarthAtNight2012, group = "Night (NASA)",providerTileOptions(zIndex= -10)) %>%
+  addProviderTiles(providers$ Esri.WorldImagery, group = "Imagery (Esri)",providerTileOptions(zIndex= -10)) %>%
+    clearImages() %>%
+  
+   # Overlay groups
+  addScaleBar()%>%
+ 
+
+   addPolygons(data = nga, fillOpacity = 0, weight = 1,color = "white")%>%
+  addLegend_decreasing(pal = pal, values = values( df_coolT_ng_2020_05 ),  position = "bottomright", decreasing = TRUE, title = "Temperature</br>depression</br>(°C)</br>May 2020")%>%
+  addMiniMap(position = "bottomleft")  %>%
+  
+  # Layers control
+     # Layers control
+   addLayersControl(
+    baseGroups = c("OSM (default)","Terrain","Topo", "Night (NASA)", "Imagery (Esri)"),
+    overlayGroups = "Temp dep",
+    options = layersControlOptions(collapsed = FALSE, autoZIndex = FALSE)) %>%
+  addRasterImage( df_coolT_ng_2020_05 , colors = pal, opacity = 0.8) 
 ```
+
 
 India
 
@@ -174,10 +192,22 @@ crs(df_coolT_ind_2020_05) <- sp::CRS("+init=EPSG:4326")
 pal <- colorNumeric("viridis", values(df_coolT_ind_2020_05),na.color = NA)
 leaflet() %>% 
   addTiles() %>%
+  addProviderTiles(providers$Stamen.Terrain, group = "Terrain",providerTileOptions(zIndex= -10000)) %>%
+      addProviderTiles(providers$OpenTopoMap, group = "Topo",providerTileOptions(zIndex= -10)) %>%
+  addProviderTiles(providers$NASAGIBS.ViirsEarthAtNight2012, group = "Night (NASA)",providerTileOptions(zIndex= -10)) %>%
+  addProviderTiles(providers$ Esri.WorldImagery, group = "Imagery (Esri)",providerTileOptions(zIndex= -10)) %>%
+    clearImages() %>%
     addScaleBar()%>%
-   addPolygons(data = ind, fillOpacity = 0)%>%
+   addPolygons(data = ind, fillOpacity = 0,weight = 1,color = "white")%>%
    addRasterImage( df_coolT_ind_2020_05 , colors = pal, opacity = 0.8) %>%
-  addLegend_decreasing(pal = pal, values = values( df_coolT_ind_2020_05 ),  position = "bottomright", decreasing = TRUE, title = "Temperature</br>depression</br>(°C)</br>May 2020")
+    addMiniMap(position = "bottomleft")  %>%
+  
+  addLegend_decreasing(pal = pal, values = values( df_coolT_ind_2020_05 ),  position = "bottomright", decreasing = TRUE, title = "Temperature</br>depression</br>(°C)</br>May 2020") %>%
+    # Layers control
+   addLayersControl(
+    baseGroups = c("OSM (default)","Terrain","Topo", "Night (NASA)", "Imagery (Esri)"),
+    overlayGroups = "Temp dep",
+    options = layersControlOptions(collapsed = FALSE, autoZIndex = FALSE))
 ```
 
 
