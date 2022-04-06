@@ -1,0 +1,204 @@
+---
+title: "Nigeria and India"
+---
+
+
+```{r, echo=FALSE, message=FALSE, results='hide',warning=FALSE}
+library(rgdal)
+library(ggplot2)
+library(tidyverse)
+library(raster)
+library(leaflet)
+library(data.table)
+library(dplyr)
+
+setwd("K:/2021-data-org/4. RESEARCH_n/_DATA/geospatial_data_KS/GIS_layers")
+
+ind <- readOGR(dsn = "adm1", layer = "IND_adm1")
+ind_f<-fortify(ind)
+
+setwd("K:/Sims-shoji/2021_Charcoal/boundary")
+nga <- readOGR(dsn = "Nigeria", layer = "NGA_adm1")
+nga_f<-fortify(nga)
+```
+
+
+```{r, echo=FALSE, message=FALSE, results='hide',warning=FALSE}
+setwd("K:/Sims-shoji/2021_Charcoal")
+wetbulb_india_2020<-read.csv("wetbulb_india_2020.csv")
+wetbulb_nigeria_2020<-read.csv("wetbulb_nigeria_2020.csv")
+```
+
+
+
+```{r, echo=FALSE, message=FALSE, results='hide',warning=FALSE}
+addLegend_decreasing <- function (map, position = c("topright", "bottomright", "bottomleft","topleft"),
+                                  pal, values, na.label = "NA", bins = 7, colors, 
+                                  opacity = 0.5, labels = NULL, labFormat = labelFormat(), 
+                                  title = NULL, className = "info legend", layerId = NULL, 
+                                  group = NULL, data = getMapData(map), decreasing = FALSE) {
+  
+        position <- match.arg(position)
+        type <- "unknown"
+        na.color <- NULL
+        extra <- NULL
+        if (!missing(pal)) {
+            if (!missing(colors)) 
+                stop("You must provide either 'pal' or 'colors' (not both)")
+            if (missing(title) && inherits(values, "formula")) 
+                title <- deparse(values[[2]])
+            values <- evalFormula(values, data)
+            type <- attr(pal, "colorType", exact = TRUE)
+            args <- attr(pal, "colorArgs", exact = TRUE)
+            na.color <- args$na.color
+            if (!is.null(na.color) && col2rgb(na.color, alpha = TRUE)[[4]] == 
+                    0) {
+                na.color <- NULL
+            }
+            if (type != "numeric" && !missing(bins)) 
+                warning("'bins' is ignored because the palette type is not numeric")
+            if (type == "numeric") {
+                cuts <- if (length(bins) == 1) 
+                    pretty(values, bins)
+                else bins   
+                if (length(bins) > 2) 
+                    if (!all(abs(diff(bins, differences = 2)) <= 
+                                     sqrt(.Machine$double.eps))) 
+                        stop("The vector of breaks 'bins' must be equally spaced")
+                n <- length(cuts)
+                r <- range(values, na.rm = TRUE)
+                cuts <- cuts[cuts >= r[1] & cuts <= r[2]]
+                n <- length(cuts)
+                p <- (cuts - r[1])/(r[2] - r[1])
+                extra <- list(p_1 = p[1], p_n = p[n])
+                p <- c("", paste0(100 * p, "%"), "")
+                if (decreasing == TRUE){
+                    colors <- pal(rev(c(r[1], cuts, r[2])))
+                    labels <- rev(labFormat(type = "numeric", cuts))
+                }else{
+                    colors <- pal(c(r[1], cuts, r[2]))
+                    labels <- rev(labFormat(type = "numeric", cuts))
+                }
+                colors <- paste(colors, p, sep = " ", collapse = ", ")
+            }
+            else if (type == "bin") {
+                cuts <- args$bins
+                n <- length(cuts)
+                mids <- (cuts[-1] + cuts[-n])/2
+                if (decreasing == TRUE){
+                    colors <- pal(rev(mids))
+                    labels <- rev(labFormat(type = "bin", cuts))
+                }else{
+                    colors <- pal(mids)
+                    labels <- labFormat(type = "bin", cuts)
+                }
+            }
+            else if (type == "quantile") {
+                p <- args$probs
+                n <- length(p)
+                cuts <- quantile(values, probs = p, na.rm = TRUE)
+                mids <- quantile(values, probs = (p[-1] + p[-n])/2, na.rm = TRUE)
+                if (decreasing == TRUE){
+                    colors <- pal(rev(mids))
+                    labels <- rev(labFormat(type = "quantile", cuts, p))
+                }else{
+                    colors <- pal(mids)
+                    labels <- labFormat(type = "quantile", cuts, p)
+                }
+            }
+            else if (type == "factor") {
+                v <- sort(unique(na.omit(values)))
+                colors <- pal(v)
+                labels <- labFormat(type = "factor", v)
+                if (decreasing == TRUE){
+                    colors <- pal(rev(v))
+                    labels <- rev(labFormat(type = "factor", v))
+                }else{
+                    colors <- pal(v)
+                    labels <- labFormat(type = "factor", v)
+                }
+            }
+            else stop("Palette function not supported")
+            if (!any(is.na(values))) 
+                na.color <- NULL
+        }
+        else {
+            if (length(colors) != length(labels)) 
+                stop("'colors' and 'labels' must be of the same length")
+        }
+        legend <- list(colors = I(unname(colors)), labels = I(unname(labels)), 
+                                     na_color = na.color, na_label = na.label, opacity = opacity, 
+                                     position = position, type = type, title = title, extra = extra, 
+                                     layerId = layerId, className = className, group = group)
+        invokeMethod(map, data, "addLegend", legend)
+        }
+```
+
+NOTE: Changing the base map layers hide the temperature depression map. You can unclick and click the temperature depression map to reappear on top of the base map.Sorry for inconvenience.
+
+# Nigeria
+```{r out.width='100%', echo=FALSE, warning=FALSE,message=FALSE}
+
+wetbulb_nigeria_2020<-as_tibble(wetbulb_nigeria_2020)
+coolT_ng_2020_05<-wetbulb_nigeria_2020%>% filter(month =="May") %>% dplyr::select(x,y,cool_t)
+
+df_coolT_ng_2020_05 <- rasterFromXYZ(coolT_ng_2020_05)  #Convert first two columns as lon-lat and third as value           
+
+crs(df_coolT_ng_2020_05) <- sp::CRS("+init=EPSG:4326")
+pal <- colorNumeric("viridis", values(df_coolT_ng_2020_05),na.color = NA)
+leaflet() %>% 
+  # Base groups
+  addTiles(group = "OSM (default)") %>%
+  addProviderTiles(providers$Stamen.Terrain, group = "Terrain",providerTileOptions(zIndex= -10000)) %>%
+      addProviderTiles(providers$OpenTopoMap, group = "Topo",providerTileOptions(zIndex= -10)) %>%
+  addProviderTiles(providers$NASAGIBS.ViirsEarthAtNight2012, group = "Night (NASA)",providerTileOptions(zIndex= -10)) %>%
+  addProviderTiles(providers$ Esri.WorldImagery, group = "Imagery (Esri)",providerTileOptions(zIndex= -10)) %>%
+    clearImages() %>%
+  
+   # Overlay groups
+  addScaleBar()%>%
+ 
+
+   addPolygons(data = nga, fillOpacity = 0, weight = 1,color = "white")%>%
+  addLegend_decreasing(pal = pal, values = values( df_coolT_ng_2020_05 ),  position = "bottomright", decreasing = TRUE, title = "Temperature</br>depression</br>(°C)</br>May 2020")%>%
+  addMiniMap(position = "bottomleft")  %>%
+  
+  # Layers control
+     # Layers control
+   addLayersControl(
+    baseGroups = c("OSM (default)","Terrain","Topo", "Night (NASA)", "Imagery (Esri)"),
+    overlayGroups = "Temp dep",
+    options = layersControlOptions(collapsed = FALSE, autoZIndex = FALSE)) %>%
+  addRasterImage( df_coolT_ng_2020_05 , colors = pal, opacity = 0.8,group = "Temp dep") 
+```
+
+
+# India
+```{r out.width='100%', echo=FALSE,warning=FALSE,message=FALSE}
+wetbulb_india_2020<-as_tibble(wetbulb_india_2020)
+coolT_ind_2020_05<-wetbulb_india_2020%>% filter(month =="May") %>% dplyr::select(x,y,cool_t)
+
+df_coolT_ind_2020_05 <- rasterFromXYZ(coolT_ind_2020_05)  #Convert first two columns as lon-lat and third as value           
+
+
+crs(df_coolT_ind_2020_05) <- sp::CRS("+init=EPSG:4326")
+pal <- colorNumeric("viridis", values(df_coolT_ind_2020_05),na.color = NA)
+leaflet() %>% 
+  addTiles() %>%
+  addProviderTiles(providers$Stamen.Terrain, group = "Terrain",providerTileOptions(zIndex= -10000)) %>%
+      addProviderTiles(providers$OpenTopoMap, group = "Topo",providerTileOptions(zIndex= -10)) %>%
+  addProviderTiles(providers$NASAGIBS.ViirsEarthAtNight2012, group = "Night (NASA)",providerTileOptions(zIndex= -10)) %>%
+  addProviderTiles(providers$ Esri.WorldImagery, group = "Imagery (Esri)",providerTileOptions(zIndex= -10)) %>%
+    clearImages() %>%
+    addScaleBar()%>%
+   addPolygons(data = ind, fillOpacity = 0,weight = 1,color = "white")%>%
+   addRasterImage( df_coolT_ind_2020_05 , colors = pal, opacity = 0.8,group = "Temp dep") %>%
+    addMiniMap(position = "bottomleft")  %>%
+  
+  addLegend_decreasing(pal = pal, values = values( df_coolT_ind_2020_05 ),  position = "bottomright", decreasing = TRUE, title = "Temperature</br>depression</br>(°C)</br>May 2020") %>%
+    # Layers control
+   addLayersControl(
+    baseGroups = c("OSM (default)","Terrain","Topo", "Night (NASA)", "Imagery (Esri)"),
+    overlayGroups = "Temp dep",
+    options = layersControlOptions(collapsed = FALSE, autoZIndex = FALSE))
+```

@@ -3,14 +3,20 @@ output_dir: "."
 navbar:
   title: "Evaporatove cooling potential"
   left:
-    - text: "Home"
-      icon: fa-home
+    - text: "Figures"
+      icon: fa-images
       href: index.html
+    - text: "Country"
+      icon: fa-map
+      href: country.html
+    - text: "World"
+      icon: fa-map
+      href: world.html
     - text: "More"
       menu:
-        - text: "Nigeria & India"
+        - text: "About"
           href: about.html
-        - text: "World"
+        - text: "Contact"
           href: contact.html
 output:
   html_document:
