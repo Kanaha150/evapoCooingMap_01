@@ -15,6 +15,17 @@ library(dplyr)
 library(viridisLite)
 library(leaflet)
 
+
+
+library(data.table)
+library(sp)
+library(tmap)    # for static and interactive maps
+library(sf)
+library(mapview)
+library(leafsync)
+library(viridis)
+
+
 setwd("K:/Sims-shoji/2021_Charcoal/boundary/world")
 world <- readOGR(dsn = "world_countries_2", layer = "ne_10m_admin_0_countries")
 world_f<-fortify(world,region = "sovereignt" )
@@ -186,7 +197,42 @@ leaflet() %>%
 
 ```
 
+```{r out.width='100%', echo=FALSE,warning=FALSE,message=FALSE}
+# https://cran.r-project.org/web/packages/leafsync/readme/README.html
 
+coolT_wld_2020_01<-world_2020%>% filter(month =="Jan") %>% dplyr::select(x,y,cool_t_round)
+df_coolT_wld_2020_01 <- rasterFromXYZ(coolT_wld_2020_01)  #Convert first two columns as lon-lat and third as value
+crs(df_coolT_wld_2020_01) <- sp::CRS("+init=EPSG:4326")
+
+coolT_wld_2020_04<-world_2020%>% filter(month =="Apr") %>% dplyr::select(x,y,cool_t_round)
+df_coolT_wld_2020_04 <- rasterFromXYZ(coolT_wld_2020_04)  #Convert first two columns as lon-lat and third as value
+crs(df_coolT_wld_2020_04) <- sp::CRS("+init=EPSG:4326")
+
+coolT_wld_2020_07<-world_2020%>% filter(month =="Jul") %>% dplyr::select(x,y,cool_t_round)
+df_coolT_wld_2020_07 <- rasterFromXYZ(coolT_wld_2020_07)  #Convert first two columns as lon-lat and third as value
+crs(df_coolT_wld_2020_07) <- sp::CRS("+init=EPSG:4326")
+
+coolT_wld_2020_10<-world_2020%>% filter(month =="Oct") %>% dplyr::select(x,y,cool_t_round)
+df_coolT_wld_2020_10 <- rasterFromXYZ(coolT_wld_2020_10)  #Convert first two columns as lon-lat and third as value
+crs(df_coolT_wld_2020_10) <- sp::CRS("+init=EPSG:4326")
+```
+
+
+```{r out.width='100%', echo=FALSE,warning=FALSE,message=FALSE}
+## view different aspects of same data set
+# install.packages("spatialEco")
+library(spatialEco)
+w1 <- mapview(df_coolT_wld_2020_01, na.color= NA,alpha.regions=0.5,col.regions = viridis(8), at = c(0, 2.5, 5, 7.5, 10, 15, 22), layer.name = "January 2020")
+
+w2 <- mapview(df_coolT_wld_2020_04, na.color= NA,alpha.regions=0.5,col.regions = viridis(8), at = c(0, 2.5, 5, 7.5, 10, 15, 22),layer.name = "April 2020")
+
+w3 <- mapview(df_coolT_wld_2020_07, na.color= NA,alpha.regions=0.5,col.regions = viridis(8), at = c(0, 2.5, 5, 7.5, 10, 15, 22),layer.name = "July 2020")
+
+w4 <- mapview(df_coolT_wld_2020_10, na.color= NA,alpha.regions=0.5,col.regions = viridis(8), at = c(0, 2.5, 5, 7.5, 10, 15, 22),layer.name = "October 2020")
+
+sync(w1, w2, w3, w4) # 4 panels synchronised
+
+```
 # World map
 ```{r out.width='100%', echo=FALSE, warning=FALSE}
 library(leaflet)

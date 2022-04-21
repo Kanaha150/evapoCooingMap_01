@@ -2,7 +2,6 @@
 title: "Nigeria and India"
 ---
 
-
 ```{r, echo=FALSE, message=FALSE, results='hide',warning=FALSE}
 library(rgdal)
 library(ggplot2)
@@ -11,6 +10,16 @@ library(raster)
 library(leaflet)
 library(data.table)
 library(dplyr)
+library(sp)
+library(tmap)    # for static and interactive maps
+library(sf)
+
+# install.packages("leafsync")
+# install.packages("mapview")
+library(mapview)
+library(leafsync)
+library(viridis)
+
 
 setwd("K:/2021-data-org/4. RESEARCH_n/_DATA/geospatial_data_KS/GIS_layers")
 
@@ -22,14 +31,11 @@ nga <- readOGR(dsn = "Nigeria", layer = "NGA_adm1")
 nga_f<-fortify(nga)
 ```
 
-
 ```{r, echo=FALSE, message=FALSE, results='hide',warning=FALSE}
 setwd("K:/Sims-shoji/2021_Charcoal")
 wetbulb_india_2020<-read.csv("wetbulb_india_2020.csv")
 wetbulb_nigeria_2020<-read.csv("wetbulb_nigeria_2020.csv")
 ```
-
-
 
 ```{r, echo=FALSE, message=FALSE, results='hide',warning=FALSE}
 addLegend_decreasing <- function (map, position = c("topright", "bottomright", "bottomleft","topleft"),
@@ -137,6 +143,7 @@ addLegend_decreasing <- function (map, position = c("topright", "bottomright", "
 NOTE: Changing the base map layers hide the temperature depression map. You can unclick and click the temperature depression map to reappear on top of the base map.Sorry for inconvenience.
 
 # Nigeria
+
 ```{r out.width='100%', echo=FALSE, warning=FALSE,message=FALSE}
 
 wetbulb_nigeria_2020<-as_tibble(wetbulb_nigeria_2020)
@@ -172,8 +179,56 @@ leaflet() %>%
   addRasterImage( df_coolT_ng_2020_05 , colors = pal, opacity = 0.8,group = "Temp dep") 
 ```
 
+```{r out.width='100%', echo=FALSE,warning=FALSE,message=FALSE}
+# https://cran.r-project.org/web/packages/leafsync/readme/README.html
+wetbulb_nigeria_2020$cool_t<-round(wetbulb_nigeria_2020$cool_t,1)
+coolT_nga_2020_01<-wetbulb_nigeria_2020%>% filter(month =="Jan") %>% dplyr::select(x,y,cool_t)
+df_coolT_nga_2020_01 <- rasterFromXYZ(coolT_nga_2020_01)  #Convert first two columns as lon-lat and third as value
+crs(df_coolT_nga_2020_01) <- sp::CRS("+init=EPSG:4326")
+
+coolT_nga_2020_04<-wetbulb_nigeria_2020%>% filter(month =="Apr") %>% dplyr::select(x,y,cool_t)
+df_coolT_nga_2020_04 <- rasterFromXYZ(coolT_nga_2020_04)  #Convert first two columns as lon-lat and third as value
+crs(df_coolT_nga_2020_04) <- sp::CRS("+init=EPSG:4326")
+
+coolT_nga_2020_07<-wetbulb_nigeria_2020%>% filter(month =="Jul") %>% dplyr::select(x,y,cool_t)
+df_coolT_nga_2020_07 <- rasterFromXYZ(coolT_nga_2020_07)  #Convert first two columns as lon-lat and third as value
+crs(df_coolT_nga_2020_07) <- sp::CRS("+init=EPSG:4326")
+
+coolT_nga_2020_10<-wetbulb_nigeria_2020%>% filter(month =="Oct") %>% dplyr::select(x,y,cool_t)
+df_coolT_nga_2020_10 <- rasterFromXYZ(coolT_nga_2020_10)  #Convert first two columns as lon-lat and third as value
+crs(df_coolT_nga_2020_10) <- sp::CRS("+init=EPSG:4326")
+```
+
+```{r out.width='100%', echo=FALSE,warning=FALSE,message=FALSE}
+## view different aspects of same data set
+n1 <- mapview(df_coolT_nga_2020_01, na.color= NA,alpha.regions=0.5, layer.name = "January 2020")
+
+n2 <- mapview(df_coolT_nga_2020_04,na.color= NA,alpha.regions=0.5,layer.name = "April 2020")
+
+n3 <- mapview(df_coolT_nga_2020_07,na.color= NA,alpha.regions=0.5,layer.name = "July 2020")
+
+n4 <- mapview(df_coolT_nga_2020_10, na.color= NA,alpha.regions=0.5,layer.name = "October 2020")
+
+sync(n1, n2, n3, n4) # 4 panels synchronised
+
+```
+
+```{r out.width='100%', echo=FALSE,warning=FALSE,message=FALSE}
+## view different aspects of same data set
+n1 <- mapview(df_coolT_nga_2020_01, na.color= NA,alpha.regions=0.5,col.regions = viridis(6), at = c(0, 2, 4, 6, 8,10,18), layer.name = "January 2020")
+
+n2 <- mapview(df_coolT_nga_2020_04,na.color= NA,alpha.regions=0.5,col.regions = viridis(7), at = c(0, 2, 4, 6, 8,10,18),layer.name = "April 2020")
+
+n3 <- mapview(df_coolT_nga_2020_07,na.color= NA,alpha.regions=0.5, col.regions = viridis(7), at = c(0, 2, 4, 6, 8,10,18),layer.name = "July 2020")
+
+n4 <- mapview(df_coolT_nga_2020_10, na.color= NA,alpha.regions=0.5,col.regions = viridis(7), at = c(0, 2, 4, 6, 8,10,18),layer.name = "October 2020")
+
+sync(n1, n2, n3, n4) # 4 panels synchronised
+
+```
 
 # India
+
 ```{r out.width='100%', echo=FALSE,warning=FALSE,message=FALSE}
 wetbulb_india_2020<-as_tibble(wetbulb_india_2020)
 coolT_ind_2020_05<-wetbulb_india_2020%>% filter(month =="May") %>% dplyr::select(x,y,cool_t)
@@ -201,4 +256,42 @@ leaflet() %>%
     baseGroups = c("OSM (default)","Terrain","Topo", "Night (NASA)", "Imagery (Esri)"),
     overlayGroups = "Temp dep",
     options = layersControlOptions(collapsed = FALSE, autoZIndex = FALSE))
+```
+
+```{r out.width='100%', echo=FALSE,warning=FALSE,message=FALSE}
+```
+
+```{r out.width='100%', echo=FALSE,warning=FALSE,message=FALSE}
+# https://cran.r-project.org/web/packages/leafsync/readme/README.html
+wetbulb_india_2020$cool_t<-round(wetbulb_india_2020$cool_t,1)
+coolT_ind_2020_01<-wetbulb_india_2020%>% filter(month =="Jan") %>% dplyr::select(x,y,cool_t)
+df_coolT_ind_2020_01 <- rasterFromXYZ(coolT_ind_2020_01)  #Convert first two columns as lon-lat and third as value
+crs(df_coolT_ind_2020_01) <- sp::CRS("+init=EPSG:4326")
+
+coolT_ind_2020_04<-wetbulb_india_2020%>% filter(month =="Apr") %>% dplyr::select(x,y,cool_t)
+df_coolT_ind_2020_04 <- rasterFromXYZ(coolT_ind_2020_04)  #Convert first two columns as lon-lat and third as value
+crs(df_coolT_ind_2020_04) <- sp::CRS("+init=EPSG:4326")
+
+coolT_ind_2020_07<-wetbulb_india_2020%>% filter(month =="Jul") %>% dplyr::select(x,y,cool_t)
+df_coolT_ind_2020_07 <- rasterFromXYZ(coolT_ind_2020_07)  #Convert first two columns as lon-lat and third as value
+crs(df_coolT_ind_2020_07) <- sp::CRS("+init=EPSG:4326")
+
+coolT_ind_2020_10<-wetbulb_india_2020%>% filter(month =="Oct") %>% dplyr::select(x,y,cool_t)
+df_coolT_ind_2020_10 <- rasterFromXYZ(coolT_ind_2020_10)  #Convert first two columns as lon-lat and third as value
+crs(df_coolT_ind_2020_10) <- sp::CRS("+init=EPSG:4326")
+```
+
+```{r out.width='100%', echo=FALSE,warning=FALSE,message=FALSE}
+## view different aspects of same data set
+m1 <- mapview(df_coolT_ind_2020_01, col.regions = viridis(6),na.color= NA,alpha.regions=0.5, at = c(0, 2, 4, 6, 8,10,14), layer.name = "January 2020")
+
+
+m2 <- mapview(df_coolT_ind_2020_04, col.regions = viridis(6),na.color= NA,alpha.regions=0.5, at = c(0, 2, 4, 6, 8,10,14),layer.name = "April 2020")
+
+m3 <- mapview(df_coolT_ind_2020_07, col.regions = viridis(6),na.color= NA,alpha.regions=0.5, at = c(0, 2, 4, 6, 8,10,14),layer.name = "July 2020")
+
+m4 <- mapview(df_coolT_ind_2020_10, col.regions = viridis(6),na.color= NA,alpha.regions=0.5, at = c(0, 2, 4, 6, 8,10,14),layer.name = "October 2020")
+
+sync(m1, m2, m3, m4) # 4 panels synchronised
+
 ```
